@@ -1,14 +1,16 @@
 [package]
 edition = "2021"
 name = "inotify3"
-version = "0.0.0"
+version = "0.0.1"
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
+futures-util = "0.3.24"
+inotify = "0.10.0"
 # Default enable napi4 feature, see https://nodejs.org/api/n-api.html#node-api-version-matrix
-napi = { version = "2.10.0", default-features = false, features = ["napi4"] }
+napi = { version = "2.10.0", default-features = false, features = ["napi4", "tokio_rt"] }
 napi-derive = "2.9.1"
 
 [build-dependencies]
