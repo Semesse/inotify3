@@ -155,6 +155,10 @@ export enum EventFlags {
 
 /**
  * Inotify filesystem event emitter. The only events are `'event'` and `'error'`
+ *
+ * ```typescript
+ * inotify.on('event', (path: string | null, event: WatchMask | EventMask, cookie: number) => void)
+ * ```
  */
 class Inotify extends EventEmitter {
   private watcher?: NativeInotify
