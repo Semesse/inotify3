@@ -1,8 +1,8 @@
 {
   "name": "inotify3",
   "version": "0.0.0",
-  "main": "index.js",
-  "types": "index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "napi": {
     "name": "inotify3",
     "triples": {
@@ -18,7 +18,10 @@
   "license": "MIT",
   "devDependencies": {
     "@napi-rs/cli": "^2.12.0",
-    "ava": "^4.3.3"
+    "@types/node": "^18",
+    "ava": "^4.3.3",
+    "tsup": "^6.3.0",
+    "typescript": "^4.8.4"
   },
   "ava": {
     "timeout": "3m"
@@ -28,7 +31,8 @@
   },
   "scripts": {
     "artifacts": "napi artifacts",
-    "build": "napi build --platform --release",
+    "build:native": "mkdir -p lib && napi build --platform --release --dts lib/index.d.ts --js lib/index.js && mv *.node lib",
+    "build": "pnpm build:native && pnpm tsup",
     "build:debug": "napi build --platform",
     "prepublishOnly": "napi prepublish -t npm",
     "test": "ava",
