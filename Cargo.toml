@@ -7,7 +7,7 @@ version = "0.0.1"
 crate-type = ["cdylib"]
 
 [dependencies]
-futures-util = "0.3.24"
+futures-util = "0.3.25"
 inotify = "0.10.0"
 # Default enable napi4 feature, see https://nodejs.org/api/n-api.html#node-api-version-matrix
 napi = { version = "2.10.0", default-features = false, features = ["napi4", "tokio_rt"] }

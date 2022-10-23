@@ -166,8 +166,9 @@ class Inotify extends EventEmitter {
     super()
     this.watcher = new NativeInotify()
     this.watcher.on((err, path, event, cookie) => {
-      if (!this.watcher || err) {
-        this.emit('error', !this.watcher ? new Error('Inotify instance was closed') : err)
+      if (!this.watcher) return
+      if (err) {
+        this.emit('error', err)
         return
       }
       this.emit('event', path, event, cookie)

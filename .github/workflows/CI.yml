@@ -28,31 +28,39 @@ jobs:
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
             build: |-
               set -e &&
-              pnpm build --target x86_64-unknown-linux-gnu &&
-              strip *.node
+              pnpm build:native --target x86_64-unknown-linux-gnu &&
+              strip dist/*.node &&
+              pnpm tsup
           - host: ubuntu-latest
             target: x86_64-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
-            build: set -e && pnpm build && strip *.node
+            build: set -e && pnpm build && strip dist/*.node
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
             build: |-
               set -e &&
-              pnpm build --target aarch64-unknown-linux-gnu &&
-              aarch64-unknown-linux-gnu-strip *.node
+              pnpm build:native --target aarch64-unknown-linux-gnu &&
+              aarch64-unknown-linux-gnu-strip dist/*.node &&
+              pnpm tsup
           - host: ubuntu-latest
             target: aarch64-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
             build: |-
               set -e &&
               rustup target add aarch64-unknown-linux-musl &&
-              pnpm build --target aarch64-unknown-linux-musl &&
-              /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
+              pnpm build:native --target aarch64-unknown-linux-musl &&
+              /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip dist/*.node &&
+              pnpm tsup
     name: stable - ${{ matrix.settings.target }} - node@16
     runs-on: ${{ matrix.settings.host }}
     steps:
       - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2.0.1
+        name: Install pnpm
+        with:
+          version: 7
+          run_install: false
       - name: Setup node
         uses: actions/setup-node@v3
         if: ${{ !matrix.settings.docker }}
@@ -60,12 +68,6 @@ jobs:
           node-version: 16
           check-latest: true
           cache: pnpm
-      - uses: pnpm/action-setup@v2.0.1
-        name: Install pnpm
-        id: pnpm-install
-        with:
-          version: 7
-          run_install: false
       - name: Install
         uses: actions-rs/toolchain@v1
         if: ${{ !matrix.settings.docker }}
@@ -97,6 +99,11 @@ jobs:
         if: matrix.settings.target == 'i686-pc-windows-msvc'
         run: pnpm config set supportedArchitectures.cpu "ia32"
         shell: bash
+      - uses: pnpm/action-setup@v2.0.1
+        name: Install pnpm
+        with:
+          version: 7
+          run_install: false
       - name: Install dependencies
         run: pnpm install
       - name: Setup node x86
@@ -107,12 +114,6 @@ jobs:
           check-latest: true
           cache: pnpm
           architecture: x86
-      - uses: pnpm/action-setup@v2.0.1
-        name: Install pnpm
-        id: pnpm-install
-        with:
-          version: 7
-          run_install: false
       - name: Build in docker
         uses: addnab/docker-run-action@v3
         if: ${{ matrix.settings.docker }}
@@ -128,7 +129,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: bindings-${{ matrix.settings.target }}
-          path: ${{ env.APP_NAME }}.*.node
+          path: dist
           if-no-files-found: error
   test-linux-x64-gnu-binding:
     name: Test bindings on Linux-x64-gnu - node@${{ matrix.node }}
@@ -144,18 +145,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2.0.1
+        name: Install pnpm
+        with:
+          version: 7
+          run_install: false
       - name: Setup node
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
           cache: pnpm
-      - uses: pnpm/action-setup@v2.0.1
-        name: Install pnpm
-        id: pnpm-install
-        with:
-          version: 7
-          run_install: false
       - name: Cache NPM dependencies
         uses: actions/cache@v3
         with:
@@ -167,12 +167,12 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: bindings-x86_64-unknown-linux-gnu
-          path: .
+          path: dist
       - name: List packages
         run: ls -R .
         shell: bash
       - name: Test bindings
-        run: docker run --rm -v $(pwd):/build -w /build node:${{ matrix.node }}-slim pnpm test
+        run: docker run --rm -v $(pwd):/build -w /build node:${{ matrix.node }}-slim npm run test
   test-linux-x64-musl-binding:
     name: Test bindings on x86_64-unknown-linux-musl - node@${{ matrix.node }}
     needs:
@@ -187,18 +187,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2.0.1
+        name: Install pnpm
+        with:
+          version: 7
+          run_install: false
       - name: Setup node
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
           cache: pnpm
-      - uses: pnpm/action-setup@v2.0.1
-        name: Install pnpm
-        id: pnpm-install
-        with:
-          version: 7
-          run_install: false
       - name: Cache NPM dependencies
         uses: actions/cache@v3
         with:
@@ -212,12 +211,12 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: bindings-x86_64-unknown-linux-musl
-          path: .
+          path: dist
       - name: List packages
         run: ls -R .
         shell: bash
       - name: Test bindings
-        run: docker run --rm -v $(pwd):/build -w /build node:${{ matrix.node }}-alpine pnpm test
+        run: docker run --rm -v $(pwd):/build -w /build node:${{ matrix.node }}-alpine npm run test
   test-linux-aarch64-gnu-binding:
     name: Test bindings on aarch64-unknown-linux-gnu - node@${{ matrix.node }}
     needs:
@@ -233,11 +232,16 @@ jobs:
     steps:
       - run: docker run --rm --privileged multiarch/qemu-user-static:register --reset
       - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2.0.1
+        name: Install pnpm
+        with:
+          version: 7
+          run_install: false
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
           name: bindings-aarch64-unknown-linux-gnu
-          path: .
+          path: dist
       - name: List packages
         run: ls -R .
         shell: bash
@@ -258,7 +262,7 @@ jobs:
           options: '-v ${{ github.workspace }}:/build -w /build'
           run: |
             set -e
-            pnpm test
+            npm run test
             ls -la
   test-linux-aarch64-musl-binding:
     name: Test bindings on aarch64-unknown-linux-musl - node@${{ matrix.node }}
@@ -268,11 +272,16 @@ jobs:
     steps:
       - run: docker run --rm --privileged multiarch/qemu-user-static:register --reset
       - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2.0.1
+        name: Install pnpm
+        with:
+          version: 7
+          run_install: false
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
           name: bindings-aarch64-unknown-linux-musl
-          path: .
+          path: dist
       - name: List packages
         run: ls -R .
         shell: bash
@@ -293,8 +302,8 @@ jobs:
           options: '-v ${{ github.workspace }}:/build -w /build'
           run: |
             set -e
-            apk add nodejs npm pnpm
-            pnpm test
+            apk add nodejs npm
+            npm run test
   publish:
     name: Publish
     runs-on: ubuntu-latest
@@ -305,18 +314,17 @@ jobs:
       - test-linux-aarch64-musl-binding
     steps:
       - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2.0.1
+        name: Install pnpm
+        with:
+          version: 7
+          run_install: false
       - name: Setup node
         uses: actions/setup-node@v3
         with:
           node-version: 16
           check-latest: true
           cache: pnpm
-      - uses: pnpm/action-setup@v2.0.1
-        name: Install pnpm
-        id: pnpm-install
-        with:
-          version: 7
-          run_install: false
       - name: Cache NPM dependencies
         uses: actions/cache@v3
         with:
@@ -328,10 +336,10 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           path: artifacts
-      - name: Move artifacts
-        run: pnpm artifacts
       - name: List packages
-        run: ls -R ./npm
+        run: ls -R
+      - name: Move artifacts
+        run: mkdir -p dist && mv artifacts/*/*.node dist
         shell: bash
       - name: Publish
         run: |

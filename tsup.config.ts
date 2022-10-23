@@ -6,6 +6,6 @@ export default defineConfig({
   splitting: false,
   sourcemap: true,
   dts: true,
-  clean: true,
+  clean: false, // don't remove *.node
   external: [/.*.node$/],
 })
