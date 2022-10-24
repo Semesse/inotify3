@@ -1,6 +1,6 @@
 {
   "name": "inotify3",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "napi": {
@@ -35,7 +35,6 @@
     "build": "pnpm build:native && pnpm tsup",
     "build:debug": "napi build --platform",
     "prepublishOnly": "napi prepublish -t npm",
-    "test": "ava",
-    "version": "napi version"
+    "test": "ava"
   }
 }
