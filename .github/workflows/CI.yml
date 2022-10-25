@@ -337,7 +337,7 @@ jobs:
         with:
           path: artifacts
       - name: Move artifacts
-        run: mkdir -p dist && mv artifacts/*/*.node dist
+        run: pnpm artifacts
       - name: List packages
         run: ls -R
         shell: bash
