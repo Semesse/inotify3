@@ -1,0 +1,1 @@
+find artifacts -name '*' -type f | xargs -I{} mv {} dist

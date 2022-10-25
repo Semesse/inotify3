@@ -30,8 +30,8 @@
     "node": ">= 10"
   },
   "scripts": {
-    "artifacts": "napi artifacts",
-    "build:native": "./build.sh",
+    "artifacts": "./scripts/artifacts.sh",
+    "build:native": "./scripts/build.sh",
     "build": "pnpm build:native && pnpm tsup",
     "build:debug": "napi build --platform",
     "test": "ava"
