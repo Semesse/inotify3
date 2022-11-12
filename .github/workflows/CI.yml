@@ -338,8 +338,8 @@ jobs:
           path: artifacts
       - name: Move artifacts
         run: pnpm artifacts
-      - name: List packages
-        run: ls -R
+      - name: List files
+        run: ls -lR .
         shell: bash
       - name: Publish
         run: |
